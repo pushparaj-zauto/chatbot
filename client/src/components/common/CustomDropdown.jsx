@@ -50,7 +50,7 @@ const CustomDropdown = ({
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-white dark:bg-[#1a1f2e] border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden">
+        <div className="absolute z-51 w-full mt-2 bg-white dark:bg-[#1a1f2e] border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden">
           <button
             onClick={() => {
               onChange("");

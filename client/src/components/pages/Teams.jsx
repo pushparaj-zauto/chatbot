@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import axiosInstance from "../../services/api/axiosInstance";
-import toast from "react-hot-toast";
-import API_ENDPOINTS from "../../services/api/endpoints";
-import Pagination from "../common/Pagination";
-import CustomDropdown from "../common/CustomDropdown";
+import { useState, useEffect } from 'react';
+import axiosInstance from '../../services/api/axiosInstance';
+import toast from 'react-hot-toast';
+import API_ENDPOINTS from '../../services/api/endpoints';
+import Pagination from '../common/Pagination';
+import CustomDropdown from '../common/CustomDropdown';
 import {
   User,
   Mail,
@@ -15,48 +15,35 @@ import {
   Edit2,
   Trash2,
   Search,
-} from "lucide-react";
-import StatusToggle from "../common/StatusToggle";
+} from 'lucide-react';
+import StatusToggle from '../common/StatusToggle';
+import TeamMemberOffCanvas from './TeamMemberOffCanvas';
 
 const Teams = () => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isOffCanvasOpen, setIsOffCanvasOpen] = useState(false);
 
   // filters
-  const [roleFilter, setRoleFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   // dropdowns
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
-  // modals
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  // delete modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  // Errors
-  const [errors, setErrors] = useState({});
-
-  // form data
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    mobile: "",
-    whatsapp: "",
-    role: "user",
-  });
-
-  const roleOptions = ["admin", "user"];
-  const statusOptions = ["active", "inactive"];
+  const roleOptions = ['admin', 'user'];
+  const statusOptions = ['active', 'inactive'];
 
   // search
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
 
   // Add pagination state
   const [pagination, setPagination] = useState({
@@ -110,124 +97,29 @@ const Teams = () => {
         totalPages: response.data.pagination.totalPages,
       });
     } catch (error) {
-      toast.error("Failed to load team members");
+      toast.error('Failed to load team members');
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
-  const validateForm = (isEdit = false) => {
-    const newErrors = {};
-
-    // Name validation
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
-    }
-
-    // Email validation (only for create)
-    if (!isEdit) {
-      if (!formData.email.trim()) {
-        newErrors.email = "Email is required";
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        newErrors.email = "Invalid email format";
-      }
-    }
-
-    // Password validation (only for create, min 6 chars)
-    if (!isEdit) {
-      if (!formData.password) {
-        newErrors.password = "Password is required";
-      } else if (formData.password.length < 6) {
-        newErrors.password = "Password must be at least 6 characters";
-      }
-    }
-
-    // Mobile validation (optional, but if provided must be valid)
-    if (formData.mobile && !/^\d{10}$/.test(formData.mobile)) {
-      newErrors.mobile = "Mobile must be 10 digits";
-    }
-
-    // WhatsApp validation (optional, but if provided must be valid)
-    if (formData.whatsapp && !/^\d{10}$/.test(formData.whatsapp)) {
-      newErrors.whatsapp = "WhatsApp must be 10 digits";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleRefresh = async () => {
     try {
       setIsRefreshing(true);
       await fetchUsers();
-      toast.success("Team refreshed");
+      toast.success('Team refreshed');
     } catch (error) {
-      toast.error("Failed to refresh team");
+      toast.error('Failed to refresh team');
     } finally {
       setIsRefreshing(false);
-    }
-  };
-
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
-
-    // Add validation check
-    if (!validateForm(false)) {
-      toast.error("Fill valid details");
-      return;
-    }
-
-    try {
-      const response = await axiosInstance.post(
-        API_ENDPOINTS.TEAM.CREATE,
-        formData
-      );
-
-      if (response.data.message) {
-        toast.success(response.data.message);
-        fetchUsers();
-        setShowCreateModal(false);
-        resetForm();
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to create user");
-    }
-  };
-
-  const handleUpdateUser = async (e) => {
-    e.preventDefault();
-
-    // Add validation check
-    if (!validateForm(true)) {
-      toast.error("Fill valid details");
-      return;
-    }
-
-    try {
-      const { password, email, ...updateData } = formData;
-
-      const response = await axiosInstance.put(
-        API_ENDPOINTS.TEAM.UPDATE(selectedUser.id),
-        updateData
-      );
-
-      if (response.data.message) {
-        toast.success(response.data.message);
-        fetchUsers();
-        setShowEditModal(false);
-        setSelectedUser(null);
-        resetForm();
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update user");
     }
   };
 
   const handleDeleteUser = async () => {
     try {
       const response = await axiosInstance.delete(
-        API_ENDPOINTS.TEAM.DELETE(userToDelete)
+        API_ENDPOINTS.TEAM.DELETE(userToDelete),
       );
 
       if (response.data.message) {
@@ -235,63 +127,30 @@ const Teams = () => {
         fetchUsers();
       }
     } catch (error) {
-      toast.error("Failed to delete user");
+      toast.error('Failed to delete user');
     } finally {
       setShowDeleteModal(false);
       setUserToDelete(null);
     }
   };
 
-  const openEditModal = (user) => {
+  const openOffCanvas = (user = null) => {
     setSelectedUser(user);
-    setFormData({
-      name: user.name,
-      email: user.email,
-      mobile: user.mobile || "",
-      whatsapp: user.whatsapp || "",
-      role: user.role,
-    });
-    setShowEditModal(true);
+    setIsOffCanvasOpen(true);
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      email: "",
-      password: "",
-      mobile: "",
-      whatsapp: "",
-      role: "user",
-    });
-    setErrors({});
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-
-    // Update form data
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Clear error for this specific field
-    if (errors[name]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
+  const closeOffCanvas = () => {
+    setSelectedUser(null);
+    setIsOffCanvasOpen(false);
   };
 
   const getRoleColor = (role) => {
     const colors = {
-      super_admin: "bg-purple-500/20 text-purple-700 dark:text-purple-400",
-      admin: "bg-blue-500/20 text-blue-700 dark:text-blue-400",
-      user: "bg-green-500/20 text-green-700 dark:text-green-400",
+      super_admin: 'bg-purple-500/20 text-purple-700 dark:text-purple-400',
+      admin: 'bg-blue-500/20 text-blue-700 dark:text-blue-400',
+      user: 'bg-green-500/20 text-green-700 dark:text-green-400',
     };
-    return colors[role] || "bg-gray-500/20 text-gray-700 dark:text-gray-400";
+    return colors[role] || 'bg-gray-500/20 text-gray-700 dark:text-gray-400';
   };
 
   const handleSearchChange = (e) => {
@@ -338,15 +197,12 @@ const Teams = () => {
               className="flex items-center gap-2 px-4 py-2 bg-bgColor border border-borderColor text-textPrimary rounded-lg hover:bg-hoverBg transition-colors disabled:opacity-50"
             >
               <RefreshCw
-                className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+                className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
               />
               Refresh
             </button>
             <button
-              onClick={() => {
-                resetForm();
-                setShowCreateModal(true);
-              }}
+              onClick={() => openOffCanvas()}
               className="flex items-center gap-2 px-4 py-2 bg-brandColor text-white rounded-lg hover:bg-brandHover transition-colors"
             >
               <Plus className="w-4 h-4" />
@@ -478,7 +334,7 @@ const Teams = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(
-                            user.role
+                            user.role,
                           )}`}
                         >
                           <Shield className="w-3 h-3 mr-1" />
@@ -495,7 +351,7 @@ const Teams = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => openEditModal(user)}
+                            onClick={() => openOffCanvas(user)}
                             className="p-2 text-info hover:bg-infoLight rounded-lg transition-colors"
                             title="Edit user"
                           >
@@ -534,291 +390,19 @@ const Teams = () => {
         />
       </div>
 
-      {/* Create Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-modalBackdrop flex items-center justify-center z-50 p-4">
-          <div className="bg-modalBg rounded-lg shadow-custom-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="bg-navBgColor px-6 py-4 border-b border-borderColor flex items-center justify-between sticky top-0">
-              <h3 className="text-lg font-semibold text-textPrimary flex items-center gap-2">
-                <Plus className="w-5 h-5" />
-                Add New User
-              </h3>
-              <button
-                onClick={() => {
-                  setShowCreateModal(false);
-                  resetForm();
-                }}
-                className="text-textSecondary hover:text-textPrimary"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateUser} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-textPrimary mb-1">
-                  Name
-                  <span className="text-red-700 dark:text-red-500 mx-1">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 bg-inputBgColor border border-inputBorderColor rounded-lg focus:outline-none focus:ring-2 focus:ring-inputFocusColor text-textPrimary"
-                  placeholder="Enter name"
-                />
-                {errors.name && (
-                  <p className="text-danger text-xs mt-1">{errors.name}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-textPrimary mb-1">
-                  Email
-                  <span className="text-red-700 dark:text-red-500 mx-1">*</span>
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 bg-inputBgColor border border-inputBorderColor rounded-lg focus:outline-none focus:ring-2 focus:ring-inputFocusColor text-textPrimary"
-                  placeholder="Enter email"
-                />
-                {errors.email && (
-                  <p className="text-danger text-xs mt-1">{errors.email}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-textPrimary mb-1">
-                  Password
-                  <span className="text-red-700 dark:text-red-500 mx-1">*</span>
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 bg-inputBgColor border border-inputBorderColor rounded-lg focus:outline-none focus:ring-2 focus:ring-inputFocusColor text-textPrimary"
-                  placeholder="Enter password (min 6 chars)"
-                />
-                {errors.password && (
-                  <p className="text-danger text-xs mt-1">{errors.password}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-textPrimary mb-1">
-                  Mobile
-                </label>
-                <input
-                  type="text"
-                  name="mobile"
-                  value={formData.mobile}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 bg-inputBgColor border border-inputBorderColor rounded-lg focus:outline-none focus:ring-2 focus:ring-inputFocusColor text-textPrimary"
-                  placeholder="10 digit mobile number"
-                />
-                {errors.mobile && (
-                  <p className="text-danger text-xs mt-1">{errors.mobile}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-textPrimary mb-1">
-                  WhatsApp
-                </label>
-                <input
-                  type="text"
-                  name="whatsapp"
-                  value={formData.whatsapp}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 bg-inputBgColor border border-inputBorderColor rounded-lg focus:outline-none focus:ring-2 focus:ring-inputFocusColor text-textPrimary"
-                  placeholder="10 digit WhatsApp number"
-                />
-                {errors.whatsapp && (
-                  <p className="text-danger text-xs mt-1">{errors.whatsapp}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-textPrimary mb-1">
-                  Role
-                  <span className="text-red-700 dark:text-red-500 mx-1">*</span>
-                </label>
-                <select
-                  value={formData.role}
-                  onChange={(e) =>
-                    setFormData({ ...formData, role: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-inputBgColor border border-inputBorderColor rounded-lg focus:outline-none focus:ring-2 focus:ring-inputFocusColor text-textPrimary"
-                >
-                  {roleOptions.map((role) => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    resetForm();
-                  }}
-                  className="flex-1 px-4 py-2 border border-borderColor text-textPrimary rounded-lg hover:bg-hoverBg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-brandColor text-white rounded-lg hover:bg-brandHover transition-colors"
-                >
-                  Create User
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Modal */}
-      {showEditModal && selectedUser && (
-        <div className="fixed inset-0 bg-modalBackdrop flex items-center justify-center z-50 p-4">
-          <div className="bg-modalBg rounded-lg shadow-custom-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="bg-navBgColor px-6 py-4 border-b border-borderColor flex items-center justify-between sticky top-0">
-              <h3 className="text-lg font-semibold text-textPrimary flex items-center gap-2">
-                <Edit2 className="w-5 h-5" />
-                Edit User
-              </h3>
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setSelectedUser(null);
-                  resetForm();
-                }}
-                className="text-textSecondary hover:text-textPrimary"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleUpdateUser} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-textPrimary mb-1">
-                  Name
-                  <span className="text-red-700 dark:text-red-500 mx-1">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 bg-inputBgColor border border-inputBorderColor rounded-lg focus:outline-none focus:ring-2 focus:ring-inputFocusColor text-textPrimary"
-                  placeholder="Enter name"
-                />
-                {errors.name && (
-                  <p className="text-danger text-xs mt-1">{errors.name}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-textSecondary mb-1">
-                  Email (cannot be changed)
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  disabled
-                  className="w-full px-3 py-2 bg-inputBgColor border border-inputBorderColor rounded-lg text-textSecondary opacity-60 cursor-not-allowed"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-textPrimary mb-1">
-                  Mobile
-                </label>
-                <input
-                  type="text"
-                  name="mobile"
-                  value={formData.mobile}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 bg-inputBgColor border border-inputBorderColor rounded-lg focus:outline-none focus:ring-2 focus:ring-inputFocusColor text-textPrimary"
-                  placeholder="10 digit mobile number"
-                />
-                {errors.mobile && (
-                  <p className="text-danger text-xs mt-1">{errors.mobile}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-textPrimary mb-1">
-                  WhatsApp
-                </label>
-                <input
-                  type="text"
-                  name="whatsapp"
-                  value={formData.whatsapp}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 bg-inputBgColor border border-inputBorderColor rounded-lg focus:outline-none focus:ring-2 focus:ring-inputFocusColor text-textPrimary"
-                  placeholder="10 digit WhatsApp number"
-                />
-                {errors.whatsapp && (
-                  <p className="text-danger text-xs mt-1">{errors.whatsapp}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-textPrimary mb-1">
-                  Role
-                  <span className="text-red-700 dark:text-red-500 mx-1">*</span>
-                </label>
-                <select
-                  value={formData.role}
-                  onChange={(e) =>
-                    setFormData({ ...formData, role: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-inputBgColor border border-inputBorderColor rounded-lg focus:outline-none focus:ring-2 focus:ring-inputFocusColor text-textPrimary"
-                >
-                  {roleOptions.map((role) => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setSelectedUser(null);
-                    resetForm();
-                  }}
-                  className="flex-1 px-4 py-2 border border-borderColor text-textPrimary rounded-lg hover:bg-hoverBg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-brandColor text-white rounded-lg hover:bg-brandHover transition-colors"
-                >
-                  Update User
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <TeamMemberOffCanvas
+        isOpen={isOffCanvasOpen}
+        onClose={closeOffCanvas}
+        selectedUser={selectedUser}
+        onSuccess={() => {
+          fetchUsers();
+          closeOffCanvas();
+        }}
+      />
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-modalBackdrop flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-modalBackdrop flex items-center justify-center z-70 p-4">
           <div className="bg-modalBg rounded-lg shadow-custom-lg max-w-md w-full">
             <div className="bg-navBgColor px-6 py-4 border-b border-borderColor">
               <h3 className="text-lg font-semibold text-textPrimary">
