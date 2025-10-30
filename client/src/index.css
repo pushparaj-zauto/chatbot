@@ -1,0 +1,181 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Light theme */
+  --color-bg: #fafbfc;
+  --color-text: #2d3748;
+  --color-nav-bg: #ffffff;
+  --color-brand: #6366f1;
+  --color-brand-hover: #5b61f0;
+  --color-ai-bg: #f7fafc;
+  --color-ai-border: #e2e8f0;
+  --color-user-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --color-user-text: #ffffff;
+  --color-border: #e2e8f0;
+  --color-chat-window-bg: #ffffff;
+  --color-chat-header: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --color-input-bg: #f7fafc;
+  --color-input-border: #cbd5e0;
+  --color-input-focus: #667eea;
+  --color-shadow: rgba(0, 0, 0, 0.05);
+  --color-shadow-lg: rgba(0, 0, 0, 0.1);
+  --color-content-text: #1f2937;
+  --color-content-text-muted: #6b7280;
+  --color-scrollbar-track: #e5e7eb;
+  --color-scrollbar-thumb: #9ca3af;
+  --color-scrollbar-thumb-hover: #6b7280;
+
+  /* Modal/Card backgrounds */
+  --color-modal-bg: #ffffff;
+  --color-modal-backdrop: rgba(0, 0, 0, 0.5);
+
+  /* Text variants */
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #6b7280;
+
+  /* Border variants */
+  --color-border-secondary: #d1d5db;
+
+  /* Action buttons */
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-dark: #991b1b;
+  --color-danger-light: #fef2f2;
+  --color-danger-border: #fecaca;
+  --color-info: #2563eb;
+  --color-info-hover: #1d4ed8;
+  --color-info-light: #eff6ff;
+  --color-warning: #ca8a04;
+  --color-warning-hover: #a16207;
+
+  /* Success colors */
+  --color-success: #16a34a;
+  --color-success-hover: #15803d;
+  --color-success-light: #f0fdf4;
+  --color-success-border: #bbf7d0;
+  --color-success-dark: #166534;
+
+  /* Hover states */
+  --color-hover-bg: #f3f4f6;
+  --color-table-header: #6366f1;
+}
+
+.dark {
+  /* Dark theme */
+  --color-bg: #0a0e1a;
+  --color-text: #f1f5f9;
+  --color-nav-bg: #1a1f2e;
+  --color-brand: #8b5cf6;
+  --color-brand-hover: #7c3aed;
+  --color-ai-bg: #1e2532;
+  --color-ai-border: #374151;
+  --color-user-bg: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+  --color-user-text: #ffffff;
+  --color-border: #374151;
+  --color-chat-window-bg: #1a1f2e;
+  --color-chat-header: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+  --color-input-bg: #1e2532;
+  --color-input-border: #374151;
+  --color-input-focus: #8b5cf6;
+  --color-shadow: rgba(0, 0, 0, 0.2);
+  --color-shadow-lg: rgba(0, 0, 0, 0.3);
+  --color-content-text: #e5e7eb;
+  --color-content-text-muted: #9ca3af;
+  --color-scrollbar-track: #1e293b;
+  --color-scrollbar-thumb: #475569;
+  --color-scrollbar-thumb-hover: #64748b;
+
+  /* Modal/Card backgrounds */
+  --color-modal-bg: #1f2937;
+  --color-modal-backdrop: rgba(17, 23, 39, 0.95);
+
+  /* Text variants */
+  --color-text-primary: #f3f4f6;
+  --color-text-secondary: #d1d5db;
+  --color-text-tertiary: #9ca3af;
+
+  /* Border variants */
+  --color-border-secondary: #374151;
+
+  /* Action buttons */
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-dark: #f8f9fa;
+  --color-danger-light: #7f1d1d;
+  --color-danger-border: #991b1b;
+  --color-info: #3b82f6;
+  --color-info-hover: #2563eb;
+  --color-info-light: #1e3a8a;
+  --color-warning: #eab308;
+  --color-warning-hover: #ca8a04;
+
+  /* Success colors */
+  --color-success: #22c55e;
+  --color-success-hover: #16a34a;
+  --color-success-light: #14532d;
+  --color-success-border: #166534;
+  --color-success-dark: #dcfce7;
+
+  /* Hover states */
+  --color-hover-bg: #374151;
+  --color-table-header: #8b5cf6;
+}
+
+/* theme switching */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Disable transitions during theme change to prevent flash */
+.theme-transition-disable * {
+  transition: none !important;
+}
+
+/* Custom utility classes for gradients */
+.bg-user-gradient {
+  background: var(--color-user-bg);
+}
+
+.bg-chat-header-gradient {
+  background: var(--color-chat-header);
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-scrollbar-track);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb);
+  border-radius: 10px;
+  border: 2px solid var(--color-scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-thumb-hover);
+}
+
+/* Firefox scrollbar */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--color-input-bg) inset !important;
+  -webkit-text-fill-color: var(--color-text) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}

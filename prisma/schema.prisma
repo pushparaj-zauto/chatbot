@@ -1,0 +1,255 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  active
+  inactive
+}
+
+enum UserRole {
+  super_admin
+  admin
+  user
+}
+
+enum EventCategory {
+  personal
+  professional
+  other
+}
+
+enum PromptType {
+  default
+  custom
+}
+
+// Organization model
+model Organization {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+
+  users                User[]
+  conversationSessions ConversationSession[]
+  events               Event[]
+  people               Person[]
+  companies            Company[]
+  prompts              Prompt[]
+  configurableFields   ConfigurableField[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// User model with organizationId
+model User {
+  id         Int        @id @default(autoincrement())
+  email      String     @unique
+  password   String
+  name       String
+  mobile     String?
+  whatsapp   String?
+  role       UserRole   @default(user)
+  status     UserStatus @default(active)
+
+  organizationId Int
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+
+  prompts              Prompt[]
+  conversationSessions ConversationSession[]
+  events               Event[]
+  people               Person[]
+  companies            Company[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([email])
+  @@index([role])
+}
+
+model ConversationSession {
+  id             String @id @default(uuid())
+  userId         Int
+  organizationId Int
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  isActive     Boolean   @default(true)
+  lastActiveAt DateTime  @default(now())
+  messages     Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, organizationId, isActive, lastActiveAt])
+  @@index([organizationId])
+}
+
+model Message {
+  id        String              @id @default(uuid())
+  sessionId String
+  session   ConversationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  role    String
+  content String  @db.Text
+  audio   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([sessionId, createdAt])
+}
+
+model Event {
+  id             Int    @id @default(autoincrement())
+  userId         Int
+  organizationId Int
+  sessionId      String
+
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  title           String
+  description     String?
+  type            String        @default("event")
+  eventDate       DateTime?
+  eventTime       String?
+  location        String?
+  priority        String        @default("medium")
+  status          String        @default("pending")
+  category        EventCategory @default(personal)
+  reminderContext String?
+
+  people    EventPerson[]
+  companies EventCompany[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, organizationId])
+  @@index([organizationId])
+  @@index([eventDate])
+}
+
+model Person {
+  id             Int @id @default(autoincrement())
+  userId         Int
+  organizationId Int
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name   String
+  role   String?
+  phone  String?
+  email  String?
+  notes  String?       @db.Text
+  status String?
+  events EventPerson[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, organizationId])
+  @@index([organizationId])
+}
+
+model Company {
+  id             Int @id @default(autoincrement())
+  userId         Int
+  organizationId Int
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name     String
+  industry String?
+  location String?
+  notes    String?        @db.Text
+  status   String?
+  events   EventCompany[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, organizationId])
+  @@index([organizationId])
+}
+
+model EventPerson {
+  eventId  Int
+  personId Int
+  event    Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  person   Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, personId])
+}
+
+model EventCompany {
+  eventId   Int
+  companyId Int
+  event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, companyId])
+}
+
+model Prompt {
+  id             Int        @id @default(autoincrement())
+  type           PromptType @default(default)
+  description    String?
+  promptString   String     @db.Text
+  userId         Int
+  organizationId Int
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, userId, type])
+  @@index([organizationId])
+}
+
+model ConfigurableField {
+  id             Int          @id @default(autoincrement())
+  organizationId Int // Org-based, not user-based
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  entityType String
+  fieldName  String
+  label      String
+
+  options ConfigurableOption[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, entityType, fieldName])
+  @@index([organizationId, entityType])
+}
+
+model ConfigurableOption {
+  id      Int               @id @default(autoincrement())
+  fieldId Int
+  field   ConfigurableField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  value    String
+  label    String
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([fieldId])
+}
