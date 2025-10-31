@@ -3,6 +3,7 @@ import { X, EyeOff, Lock, Loader2, Eye } from 'lucide-react';
 import axiosInstance from '../../services/api/axiosInstance';
 import API_ENDPOINTS from '../../services/api/endpoints';
 import toast from 'react-hot-toast';
+import { validatePasswordStrength } from '../../utils/passwordValidation';
 
 const UpdatePasswordOffCanvas = ({ isOpen, onClose, user, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -39,8 +40,11 @@ const UpdatePasswordOffCanvas = ({ isOpen, onClose, user, onSuccess }) => {
 
     if (!formData.newPassword) {
       newErrors.newPassword = 'Password is required';
-    } else if (formData.newPassword.length < 6) {
-      newErrors.newPassword = 'Password must be at least 6 characters';
+    } else {
+      const passwordValidation = validatePasswordStrength(formData.newPassword);
+      if (!passwordValidation.isValid) {
+        newErrors.newPassword = passwordValidation.errors[0]; // Show first error
+      }
     }
 
     if (!formData.confirmPassword) {
@@ -97,9 +101,6 @@ const UpdatePasswordOffCanvas = ({ isOpen, onClose, user, onSuccess }) => {
                 <Lock className="w-5 h-5" />
                 Update Password
               </h2>
-              <p className="text-sm text-textSecondary mt-1">
-                Update password for {user?.name}
-              </p>
             </div>
             <button
               onClick={onClose}
@@ -115,27 +116,11 @@ const UpdatePasswordOffCanvas = ({ isOpen, onClose, user, onSuccess }) => {
             className="flex-1 overflow-y-auto p-6 space-y-6"
           >
             {/* User Info */}
-            <div className="bg-bgColor p-4 rounded-lg border border-borderColor">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-textSecondary">Name:</span>
-                  <span className="text-sm text-textPrimary font-medium">
-                    {user?.name}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-textSecondary">Email:</span>
-                  <span className="text-sm text-textPrimary font-medium">
-                    {user?.email}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-textSecondary">Role:</span>
-                  <span className="text-sm text-textPrimary font-medium capitalize">
-                    {user?.role}
-                  </span>
-                </div>
-              </div>
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <p className="text-sm text-blue-900 dark:text-blue-300">
+                Updating password for{' '}
+                <span className="font-semibold">{user?.name}</span>
+              </p>
             </div>
 
             {/* New Password */}
@@ -207,7 +192,11 @@ const UpdatePasswordOffCanvas = ({ isOpen, onClose, user, onSuccess }) => {
                 Password Requirements:
               </p>
               <ul className="text-sm text-blue-800 dark:text-blue-400 space-y-1 list-disc list-inside">
-                <li>Minimum 6 characters</li>
+                <li>Minimum 8 characters</li>
+                <li>At least one uppercase letter (A-Z)</li>
+                <li>At least one lowercase letter (a-z)</li>
+                <li>At least one number (0-9)</li>
+                <li>At least one special character (!@#$%^&* etc.)</li>
                 <li>Both passwords must match</li>
               </ul>
             </div>

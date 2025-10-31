@@ -3,6 +3,7 @@ import { X, User, Mail, Phone, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axiosInstance from '../../services/api/axiosInstance';
 import API_ENDPOINTS from '../../services/api/endpoints';
+import { validatePasswordStrength } from '../../utils/passwordValidation';
 
 const TeamMemberOffCanvas = ({ isOpen, onClose, selectedUser, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -67,8 +68,11 @@ const TeamMemberOffCanvas = ({ isOpen, onClose, selectedUser, onSuccess }) => {
       }
       if (!formData.password) {
         newErrors.password = 'Password is required';
-      } else if (formData.password.length < 6) {
-        newErrors.password = 'Password must be at least 6 characters';
+      } else {
+        const passwordValidation = validatePasswordStrength(formData.password);
+        if (!passwordValidation.isValid) {
+          newErrors.password = passwordValidation.errors[0]; // Show first error
+        }
       }
     }
     if (formData.mobile && !/^\d{10}$/.test(formData.mobile)) {
@@ -197,10 +201,16 @@ const TeamMemberOffCanvas = ({ isOpen, onClose, selectedUser, onSuccess }) => {
                   value={formData.password}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 bg-inputBgColor border border-inputBorderColor rounded-lg focus:outline-none focus:ring-2 focus:ring-inputFocusColor text-textPrimary"
-                  placeholder="Enter password (min 6 chars)"
+                  placeholder="Enter strong password"
                 />
                 {errors.password && (
                   <p className="text-danger text-xs mt-1">{errors.password}</p>
+                )}
+                {!errors.password && (
+                  <p className="text-textTertiary text-xs mt-1">
+                    Min 8 characters with uppercase, lowercase, number & special
+                    character
+                  </p>
                 )}
               </div>
             )}
