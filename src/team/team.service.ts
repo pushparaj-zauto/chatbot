@@ -168,4 +168,29 @@ export class TeamService {
       message: 'User deleted successfully',
     };
   }
+
+  async updateUserPassword(
+    userId: number,
+    newPassword: string,
+    organizationId: number,
+  ) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, organizationId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const hashedPassword = await this.authService.hashPassword(newPassword);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    return {
+      message: 'Password updated successfully',
+    };
+  }
 }

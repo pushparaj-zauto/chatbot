@@ -52,3 +52,9 @@ export class UpdateUserDto {
   @IsEnum(UserStatus)
   status?: UserStatus;
 }
+
+export class UpdatePasswordDto {
+  @IsString()
+  @MinLength(6)
+  newPassword: string;
+}

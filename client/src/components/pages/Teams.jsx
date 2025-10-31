@@ -15,9 +15,11 @@ import {
   Edit2,
   Trash2,
   Search,
+  KeyRound,
 } from 'lucide-react';
 import StatusToggle from '../common/StatusToggle';
-import TeamMemberOffCanvas from './TeamMemberOffCanvas';
+import TeamMemberOffCanvas from '../offcanvas/TeamMemberOffCanvas';
+import UpdatePasswordOffCanvas from '../offcanvas/UpdatePasswordOffCanvas';
 
 const Teams = () => {
   const [users, setUsers] = useState([]);
@@ -25,6 +27,8 @@ const Teams = () => {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isOffCanvasOpen, setIsOffCanvasOpen] = useState(false);
+  const [isPasswordOffCanvasOpen, setIsPasswordOffCanvasOpen] = useState(false);
+  const [userForPasswordUpdate, setUserForPasswordUpdate] = useState(null);
 
   // filters
   const [roleFilter, setRoleFilter] = useState('');
@@ -142,6 +146,16 @@ const Teams = () => {
   const closeOffCanvas = () => {
     setSelectedUser(null);
     setIsOffCanvasOpen(false);
+  };
+
+  const openPasswordOffCanvas = (user) => {
+    setUserForPasswordUpdate(user);
+    setIsPasswordOffCanvasOpen(true);
+  };
+
+  const closePasswordOffCanvas = () => {
+    setUserForPasswordUpdate(null);
+    setIsPasswordOffCanvasOpen(false);
   };
 
   const getRoleColor = (role) => {
@@ -358,6 +372,13 @@ const Teams = () => {
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
+                            onClick={() => openPasswordOffCanvas(user)}
+                            className="p-2 text-warning hover:bg-warningLight rounded-lg transition-colors"
+                            title="Update password"
+                          >
+                            <KeyRound className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => {
                               setUserToDelete(user.id);
                               setShowDeleteModal(true);
@@ -397,6 +418,15 @@ const Teams = () => {
         onSuccess={() => {
           fetchUsers();
           closeOffCanvas();
+        }}
+      />
+
+      <UpdatePasswordOffCanvas
+        isOpen={isPasswordOffCanvasOpen}
+        onClose={closePasswordOffCanvas}
+        user={userForPasswordUpdate}
+        onSuccess={() => {
+          closePasswordOffCanvas();
         }}
       />
 

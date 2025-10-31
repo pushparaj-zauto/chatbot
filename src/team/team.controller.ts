@@ -11,6 +11,7 @@ import {
   HttpStatus,
   ForbiddenException,
   Query,
+  Patch,
 } from '@nestjs/common';
 import { TeamService } from './team.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -19,7 +20,11 @@ import {
   CurrentOrgId,
 } from 'src/auth/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
-import { CreateUserDto, UpdateUserDto } from './dto/team.dto';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  UpdatePasswordDto,
+} from './dto/team.dto';
 
 @Controller('team')
 @UseGuards(JwtAuthGuard)
@@ -92,5 +97,23 @@ export class TeamController {
       throw new ForbiddenException('Only super admin can delete users');
     }
     return this.teamService.deleteUser(parseInt(userId), organizationId);
+  }
+
+  // ✅ Update user password (super_admin only)
+  @Patch('users/:userId/password')
+  async updateUserPassword(
+    @Param('userId') userId: string,
+    @Body() dto: UpdatePasswordDto,
+    @CurrentUser('role') role: UserRole,
+    @CurrentOrgId() organizationId: number,
+  ) {
+    if (role !== UserRole.super_admin) {
+      throw new ForbiddenException('Only super admin can update passwords');
+    }
+    return this.teamService.updateUserPassword(
+      parseInt(userId),
+      dto.newPassword,
+      organizationId,
+    );
   }
 }
