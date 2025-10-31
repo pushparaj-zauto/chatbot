@@ -70,7 +70,7 @@ const Teams = () => {
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
+      setDebouncedSearchQuery(searchQuery.trim());
     }, 400);
 
     return () => {

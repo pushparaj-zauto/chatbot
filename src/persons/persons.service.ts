@@ -5,20 +5,54 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class PersonsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getUserPersons(userId: number) {
-    const persons = await this.prisma.person.findMany({
-      where: { userId },
-      include: {
-        events: {
-          include: {
-            event: true,
+  async getUserPersons(
+    userId: number,
+    page: number = 1,
+    limit: number = 12,
+    search?: string,
+  ) {
+    const skip = (page - 1) * limit;
+
+    const whereClause: any = { userId };
+
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { role: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
+        { status: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [persons, total] = await Promise.all([
+      this.prisma.person.findMany({
+        where: whereClause,
+        include: {
+          events: {
+            include: {
+              event: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.person.count({
+        where: whereClause,
+      }),
+    ]);
 
-    return { persons };
+    return {
+      persons,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async getPersonById(personId: number, userId: number) {

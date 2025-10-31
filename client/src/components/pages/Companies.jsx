@@ -38,7 +38,7 @@ const Companies = () => {
   // Debounce search query
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
+      setDebouncedSearchQuery(searchQuery.trim());
     }, 400);
 
     return () => {
@@ -229,18 +229,16 @@ const Companies = () => {
             </div>
 
             {/* Pagination */}
-            {!loading && companies.length > 0 && (
-              <div className="mt-auto pt-6">
-                <Pagination
-                  currentPage={pagination.page}
-                  totalPages={pagination.totalPages}
-                  totalItems={pagination.total}
-                  itemsPerPage={pagination.limit}
-                  onPageChange={handlePageChange}
-                  onItemsPerPageChange={handleItemsPerPageChange}
-                />
-              </div>
-            )}
+            <div className="mt-auto pt-6">
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.total}
+                itemsPerPage={pagination.limit}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+              />
+            </div>
           </div>
         )}
       </div>
