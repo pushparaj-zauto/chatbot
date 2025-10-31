@@ -20,6 +20,7 @@ import {
 import StatusToggle from '../common/StatusToggle';
 import TeamMemberOffCanvas from '../offcanvas/TeamMemberOffCanvas';
 import UpdatePasswordOffCanvas from '../offcanvas/UpdatePasswordOffCanvas';
+import Tooltip from '../common/Tooltip';
 
 const Teams = () => {
   const [users, setUsers] = useState([]);
@@ -364,30 +365,33 @@ const Teams = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => openOffCanvas(user)}
-                            className="p-2 text-info hover:bg-infoLight rounded-lg transition-colors"
-                            title="Edit user"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => openPasswordOffCanvas(user)}
-                            className="p-2 text-warning hover:bg-warningLight rounded-lg transition-colors"
-                            title="Update password"
-                          >
-                            <KeyRound className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              setUserToDelete(user.id);
-                              setShowDeleteModal(true);
-                            }}
-                            className="p-2 text-danger hover:bg-dangerLight rounded-lg transition-colors"
-                            title="Delete user"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <Tooltip text="Edit user" position="top">
+                            <button
+                              onClick={() => openOffCanvas(user)}
+                              className="p-2 text-info hover:bg-infoLight rounded-lg transition-colors"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                          </Tooltip>
+                          <Tooltip text="Update password" position="top">
+                            <button
+                              onClick={() => openPasswordOffCanvas(user)}
+                              className="p-2 text-warning hover:bg-warningLight rounded-lg transition-colors"
+                            >
+                              <KeyRound className="w-4 h-4" />
+                            </button>
+                          </Tooltip>
+                          <Tooltip text="Delete user" position="top">
+                            <button
+                              onClick={() => {
+                                setUserToDelete(user.id);
+                                setShowDeleteModal(true);
+                              }}
+                              className="p-2 text-danger hover:bg-dangerLight rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </Tooltip>
                         </div>
                       </td>
                     </tr>
