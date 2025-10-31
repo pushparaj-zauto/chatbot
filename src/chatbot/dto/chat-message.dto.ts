@@ -8,7 +8,6 @@ export class SendMessageDto {
   @IsString()
   @IsOptional()
   sessionId?: string;
-
 }
 
 export class ChatResponseDto {
@@ -26,4 +25,10 @@ export class ConversationChunkDto {
 
 export class GetChunksResponseDto {
   chunks: ConversationChunkDto[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }

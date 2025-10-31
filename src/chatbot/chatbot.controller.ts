@@ -69,12 +69,14 @@ export class ChatbotController {
   async getChunks(
     @CurrentUser('id') userId: number,
     @CurrentOrgId() organizationId: number,
+    @Query('page') page?: string,
     @Query('limit') limit?: string,
   ): Promise<GetChunksResponseDto> {
     return this.chatbotService.getChunks(
       userId,
       organizationId,
-      limit ? parseInt(limit) : 50,
+      page ? parseInt(page) : 1,
+      limit ? parseInt(limit) : 10,
     );
   }
 

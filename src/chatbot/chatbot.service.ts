@@ -519,14 +519,30 @@ Return ONLY the normalized text, nothing else.`;
   async getChunks(
     userId: number,
     organizationId: number,
-    limit: number = 50,
+    page: number = 1,
+    limit: number = 10,
   ): Promise<GetChunksResponseDto> {
-    const chunks = await this.milvusService.getAllChunks(
+    const skip = (page - 1) * limit;
+
+    const allChunks = await this.milvusService.getAllChunks(
       userId,
       organizationId,
-      limit,
+      1000, // Get all chunks for counting
     );
-    return { chunks };
+
+    const total = allChunks.length;
+    const totalPages = Math.ceil(total / limit);
+    const chunks = allChunks.slice(skip, skip + limit);
+
+    return {
+      chunks,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    };
   }
 
   async getSystemPrompt(

@@ -1,40 +1,56 @@
-import React, { useState, useEffect } from "react";
-import { Trash2 } from "lucide-react";
-import DeleteConfirmModal from "../modals/DeleteConfirmModal";
-import axiosInstance from "../../services/api/axiosInstance";
-import API_ENDPOINTS from "../../services/api/endpoints";
+import React, { useState, useEffect } from 'react';
+import { Trash2 } from 'lucide-react';
+import DeleteConfirmModal from '../modals/DeleteConfirmModal';
+import axiosInstance from '../../services/api/axiosInstance';
+import API_ENDPOINTS from '../../services/api/endpoints';
+import Pagination from '../common/Pagination';
 
 const ChunksViewer = () => {
   const [chunks, setChunks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [deletingChunkId, setDeletingChunkId] = useState(null);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  });
 
   // Delete confirmation modal state
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
-    type: "all", // 'all' or 'single'
+    type: 'all', // 'all' or 'single'
     chunkId: null,
   });
 
   useEffect(() => {
     fetchChunks();
-  }, []);
+  }, [pagination.page, pagination.limit]);
 
   const fetchChunks = async () => {
     setIsLoading(true);
-    setError("");
+    setError('');
     try {
       const response = await axiosInstance.get(API_ENDPOINTS.CHUNKS.GET, {
         params: {
-          limit: 50,
+          page: pagination.page,
+          limit: pagination.limit,
         },
       });
       setChunks(response.data.chunks);
+      setPagination({
+        page: response.data.pagination.page,
+        limit: response.data.pagination.limit,
+        total: response.data.pagination.total,
+        totalPages: response.data.pagination.totalPages,
+      });
     } catch (err) {
-      console.error("Error fetching chunks:", err);
-      setError("Failed to load conversation chunks");
+      console.error('Error fetching chunks:', err);
+      setError('Failed to load conversation chunks');
     } finally {
       setIsLoading(false);
     }
@@ -51,29 +67,29 @@ const ChunksViewer = () => {
   const closeDeleteModal = () => {
     setDeleteModal({
       isOpen: false,
-      type: "all",
+      type: 'all',
       chunkId: null,
     });
   };
 
   const deleteChunk = async (chunkId) => {
     setDeletingChunkId(chunkId);
-    setError("");
+    setError('');
     try {
       const response = await axiosInstance.delete(
-        API_ENDPOINTS.CHUNKS.DELETE_ONE(chunkId)
+        API_ENDPOINTS.CHUNKS.DELETE_ONE(chunkId),
       );
       if (response.data.success) {
         setChunks((prevChunks) =>
-          prevChunks.filter((chunk) => chunk.id !== chunkId)
+          prevChunks.filter((chunk) => chunk.id !== chunkId),
         );
         closeDeleteModal();
       } else {
-        setError(response.data.message || "Failed to delete chunk");
+        setError(response.data.message || 'Failed to delete chunk');
       }
     } catch (err) {
-      console.error("Error deleting chunk:", err);
-      setError("Failed to delete chunk");
+      console.error('Error deleting chunk:', err);
+      setError('Failed to delete chunk');
     } finally {
       setDeletingChunkId(null);
     }
@@ -81,65 +97,73 @@ const ChunksViewer = () => {
 
   const deleteAllChunks = async () => {
     setIsDeletingAll(true);
-    setError("");
+    setError('');
     try {
       const response = await axiosInstance.delete(
-        API_ENDPOINTS.CHUNKS.DELETE_ALL
+        API_ENDPOINTS.CHUNKS.DELETE_ALL,
       );
       if (response.data.success) {
         setChunks([]);
         closeDeleteModal();
       } else {
-        setError(response.data.message || "Failed to delete all chunks");
+        setError(response.data.message || 'Failed to delete all chunks');
       }
     } catch (err) {
-      console.error("Error deleting all chunks:", err);
-      setError("Failed to delete all chunks");
+      console.error('Error deleting all chunks:', err);
+      setError('Failed to delete all chunks');
     } finally {
       setIsDeletingAll(false);
     }
   };
 
   const handleDeleteConfirm = () => {
-    if (deleteModal.type === "all") {
+    if (deleteModal.type === 'all') {
       deleteAllChunks();
     } else {
       deleteChunk(deleteModal.chunkId);
     }
   };
 
+  const handlePageChange = (page) => {
+    setPagination((prev) => ({ ...prev, page }));
+  };
+
+  const handleItemsPerPageChange = (limit) => {
+    setPagination((prev) => ({ ...prev, limit, page: 1 }));
+  };
+
   const formatTimestamp = (timestamp) => {
     const ts = Number(timestamp);
     const date = new Date(ts);
-    return date.toLocaleString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
       hour12: true,
     });
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-50px)] bg-gray-50 dark:bg-gray-950 rounded-lg border border-gray-200 dark:border-gray-800 shadow-lg">
+    <div className="flex flex-col h-full bg-bgColor">
       {/* Header */}
-      <div className="flex justify-between items-center px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <div className="flex justify-between items-center px-4 md:px-6 py-4 border-b border-borderColor bg-navBgColor">
         <div>
-          <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-lg md:text-xl font-semibold text-textPrimary">
             Conversation Chunks
           </h2>
-          <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {chunks.length} chunk{chunks.length !== 1 ? "s" : ""} stored
+          <p className="text-xs md:text-sm text-textSecondary mt-1">
+            {pagination.total} chunk{pagination.total !== 1 ? 's' : ''} stored
           </p>
         </div>
-        {chunks.length > 0 && (
+        {pagination.total > 0 && (
           <button
-            onClick={() => openDeleteModal("all")}
+            onClick={() => openDeleteModal('all')}
             disabled={isDeletingAll}
-            className="px-3 md:px-4 py-2 bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
+            className="px-3 md:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
           >
-            {isDeletingAll ? "Deleting..." : "Delete All"}
+            {isDeletingAll ? 'Deleting...' : 'Delete All'}
           </button>
         )}
       </div>
@@ -156,11 +180,11 @@ const ChunksViewer = () => {
 
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-10 w-10 md:h-12 md:w-12 border-b-2 border-violet-600 dark:border-violet-500"></div>
+            <div className="animate-spin rounded-full h-10 w-10 md:h-12 md:w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : chunks.length === 0 ? (
           <div className="flex justify-center items-center h-64">
-            <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">
+            <p className="text-sm md:text-base text-textSecondary">
               No chunks available yet.
             </p>
           </div>
@@ -169,17 +193,17 @@ const ChunksViewer = () => {
             {chunks.map((chunk) => (
               <div
                 key={chunk.id}
-                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                className="bg-navBgColor border border-borderColor rounded-lg shadow-sm hover:shadow-md transition-shadow"
               >
                 {/* Chunk Header */}
-                <div className="flex justify-between items-start px-4 md:px-5 py-2 md:py-3 border-b border-gray-200 dark:border-gray-800">
+                <div className="flex justify-between items-start px-4 md:px-5 py-2 md:py-3 border-b border-borderColor">
                   <div className="flex-1">
-                    <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-xs md:text-sm text-textSecondary">
                       {formatTimestamp(chunk.timestamp)}
                     </p>
                   </div>
                   <button
-                    onClick={() => openDeleteModal("single", chunk.id)}
+                    onClick={() => openDeleteModal('single', chunk.id)}
                     disabled={deletingChunkId === chunk.id}
                     className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Delete chunk"
@@ -195,7 +219,7 @@ const ChunksViewer = () => {
                     <p className="text-xs md:text-sm font-semibold text-violet-600 dark:text-violet-400 mb-2">
                       You:
                     </p>
-                    <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
+                    <p className="text-sm md:text-base text-textPrimary whitespace-pre-wrap break-words">
                       {chunk.userMessage}
                     </p>
                   </div>
@@ -205,13 +229,27 @@ const ChunksViewer = () => {
                     <p className="text-xs md:text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2">
                       Assistant:
                     </p>
-                    <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
+                    <p className="text-sm md:text-base text-textPrimary whitespace-pre-wrap break-words">
                       {chunk.aiResponse}
                     </p>
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!isLoading && chunks.length > 0 && (
+          <div className="mt-6">
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.total}
+              itemsPerPage={pagination.limit}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+            />
           </div>
         )}
       </div>
@@ -222,7 +260,7 @@ const ChunksViewer = () => {
         onClose={closeDeleteModal}
         onConfirm={handleDeleteConfirm}
         isDeleting={
-          deleteModal.type === "all"
+          deleteModal.type === 'all'
             ? isDeletingAll
             : deletingChunkId === deleteModal.chunkId
         }
