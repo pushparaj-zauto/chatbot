@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Patch,
   Body,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
@@ -19,8 +20,18 @@ export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
   @Get()
-  async getUserCompanies(@CurrentUser('id') userId: number) {
-    return this.companiesService.getUserCompanies(userId);
+  async getUserCompanies(
+    @CurrentUser('id') userId: number,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.companiesService.getUserCompanies(
+      userId,
+      page ? parseInt(page) : 1,
+      limit ? parseInt(limit) : 10,
+      search,
+    );
   }
 
   @Get(':id')

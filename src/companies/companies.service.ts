@@ -5,20 +5,51 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class CompaniesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getUserCompanies(userId: number) {
-    const companies = await this.prisma.company.findMany({
-      where: { userId },
-      include: {
-        events: {
-          include: {
-            event: true,
+  async getUserCompanies(
+    userId: number,
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+  ) {
+    const where: any = { userId };
+
+    // Add search filter
+    if (search && search.trim()) {
+      const searchLower = search.toLowerCase().trim();
+      where.OR = [
+        { name: { contains: searchLower, mode: 'insensitive' } },
+        { industry: { contains: searchLower, mode: 'insensitive' } },
+        { location: { contains: searchLower, mode: 'insensitive' } },
+        { status: { contains: searchLower, mode: 'insensitive' } },
+      ];
+    }
+
+    const [companies, total] = await Promise.all([
+      this.prisma.company.findMany({
+        where,
+        include: {
+          events: {
+            include: {
+              event: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.company.count({ where }),
+    ]);
 
-    return { companies };
+    return {
+      companies,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async getCompanyById(companyId: number, userId: number) {
