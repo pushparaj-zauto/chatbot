@@ -1,18 +1,18 @@
-import { useState, useEffect, useRef } from "react";
-import axiosInstance from "../../services/api/axiosInstance";
-import toast from "react-hot-toast";
-import API_ENDPOINTS from "../../services/api/endpoints";
-import DeleteEventModal from "../modals/DeleteEventModal";
-import Pagination from "../common/Pagination";
-import CustomDropdown from "../common/CustomDropdown";
-import DateRangePicker from "../common/DateRangePicker";
+import { useState, useEffect, useRef } from 'react';
+import axiosInstance from '../../services/api/axiosInstance';
+import toast from 'react-hot-toast';
+import API_ENDPOINTS from '../../services/api/endpoints';
+import DeleteEventModal from '../modals/DeleteEventModal';
+import Pagination from '../common/Pagination';
+import CustomDropdown from '../common/CustomDropdown';
+import DateRangePicker from '../common/DateRangePicker';
 import {
   formatTimestamp,
   getEventDateTime,
   formatEveDate,
   formatEveTime,
-} from "../../utils/dateUtils";
-import { Calendar, MapPin, X, Clock, PinIcon, RefreshCw } from "lucide-react";
+} from '../../utils/dateUtils';
+import { Calendar, MapPin, X, Clock, PinIcon, RefreshCw } from 'lucide-react';
 
 const Events = () => {
   const [events, setEvents] = useState([]);
@@ -21,10 +21,10 @@ const Events = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // filters
-  const [statusFilter, setStatusFilter] = useState("pending");
-  const [priorityFilter, setPriorityFilter] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [statusFilter, setStatusFilter] = useState('pending');
+  const [priorityFilter, setPriorityFilter] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   // dropdowns
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -42,8 +42,8 @@ const Events = () => {
 
   const dropdownRef = useRef(null);
 
-  const statusOptions = ["pending", "completed", "cancelled"];
-  const priorityOptions = ["low", "medium", "high"];
+  const statusOptions = ['pending', 'completed', 'cancelled'];
+  const priorityOptions = ['low', 'medium', 'high'];
 
   useEffect(() => {
     fetchEvents();
@@ -60,20 +60,20 @@ const Events = () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      if (statusFilter) params.append("status", statusFilter);
-      if (priorityFilter) params.append("priority", priorityFilter);
-      if (startDate) params.append("startDate", startDate);
-      if (endDate) params.append("endDate", endDate);
-      params.append("page", currentPage);
-      params.append("limit", itemsPerPage);
+      if (statusFilter) params.append('status', statusFilter);
+      if (priorityFilter) params.append('priority', priorityFilter);
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      params.append('page', currentPage);
+      params.append('limit', itemsPerPage);
 
       const response = await axiosInstance.get(
-        `${API_ENDPOINTS.EVENTS.LIST}?${params.toString()}`
+        `${API_ENDPOINTS.EVENTS.LIST}?${params.toString()}`,
       );
       setEvents(response.data.events || []);
       setPaginationData(response.data.pagination);
     } catch (error) {
-      toast.error("Failed to load events");
+      toast.error('Failed to load events');
       console.error(error);
     } finally {
       setLoading(false);
@@ -84,9 +84,9 @@ const Events = () => {
     try {
       setIsRefreshing(true);
       await fetchEvents();
-      toast.success("Events refreshed");
+      toast.success('Events refreshed');
     } catch (error) {
-      toast.error("Failed to refresh events");
+      toast.error('Failed to refresh events');
     } finally {
       setIsRefreshing(false);
     }
@@ -102,7 +102,7 @@ const Events = () => {
       setSelectedEvent(response.data.event);
       setShowDetailsModal(true);
     } catch (error) {
-      toast.error("Failed to load event details");
+      toast.error('Failed to load event details');
       console.error(error);
     }
   };
@@ -111,10 +111,10 @@ const Events = () => {
     try {
       const response = await axiosInstance.patch(
         API_ENDPOINTS.EVENTS.UPDATE(id),
-        updateData
+        updateData,
       );
       if (response.data.success) {
-        toast.success("Event updated successfully");
+        toast.success('Event updated successfully');
         fetchEvents();
         if (selectedEvent?.id === id) {
           setSelectedEvent(response.data.event);
@@ -123,7 +123,7 @@ const Events = () => {
         toast.error(response.data.message);
       }
     } catch (error) {
-      toast.error("Failed to update event");
+      toast.error('Failed to update event');
       console.error(error);
     }
   };
@@ -131,7 +131,7 @@ const Events = () => {
   const deleteEvent = async (id) => {
     try {
       const response = await axiosInstance.delete(
-        API_ENDPOINTS.EVENTS.DELETE(id)
+        API_ENDPOINTS.EVENTS.DELETE(id),
       );
       if (response.data.success) {
         toast.success(response.data.message);
@@ -144,7 +144,7 @@ const Events = () => {
         toast.error(response.data.message);
       }
     } catch (error) {
-      toast.error("Failed to delete event");
+      toast.error('Failed to delete event');
       console.error(error);
     } finally {
       setShowDeleteModal(false);
@@ -169,33 +169,33 @@ const Events = () => {
   };
 
   const clearDateFilter = () => {
-    setStartDate("");
-    setEndDate("");
+    setStartDate('');
+    setEndDate('');
   };
 
   const activeFiltersCount = [
-    statusFilter !== 'pending' ? statusFilter: null,
+    statusFilter !== 'pending' ? statusFilter : null,
     priorityFilter,
     startDate || endDate,
   ].filter(Boolean).length;
 
   const getStatusColor = (status) => {
     const colors = {
-      pending: "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400",
-      completed: "bg-green-500/20 text-green-700 dark:text-green-400",
-      cancelled: "bg-red-500/20 text-red-700 dark:text-red-400",
+      pending: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400',
+      completed: 'bg-green-500/20 text-green-700 dark:text-green-400',
+      cancelled: 'bg-red-500/20 text-red-700 dark:text-red-400',
     };
-    return colors[status] || "bg-gray-500/20 text-gray-700 dark:text-gray-400";
+    return colors[status] || 'bg-gray-500/20 text-gray-700 dark:text-gray-400';
   };
 
   const getPriorityColor = (priority) => {
     const colors = {
-      low: "bg-blue-500/20 text-blue-700 dark:text-blue-400",
-      medium: "bg-orange-500/20 text-orange-700 dark:text-orange-400",
-      high: "bg-red-500/20 text-red-700 dark:text-red-400",
+      low: 'bg-blue-500/20 text-blue-700 dark:text-blue-400',
+      medium: 'bg-orange-500/20 text-orange-700 dark:text-orange-400',
+      high: 'bg-red-500/20 text-red-700 dark:text-red-400',
     };
     return (
-      colors[priority] || "bg-gray-500/20 text-gray-700 dark:text-gray-400"
+      colors[priority] || 'bg-gray-500/20 text-gray-700 dark:text-gray-400'
     );
   };
 
@@ -204,7 +204,7 @@ const Events = () => {
     if (date && time) return combined;
     if (date && !time) return date;
     if (!date && time) return time;
-    return "No date/time set";
+    return 'No date/time set';
   };
 
   return (
@@ -228,13 +228,13 @@ const Events = () => {
           >
             <RefreshCw
               size={18}
-              className={`${isRefreshing ? "animate-spin" : ""}`}
+              className={`${isRefreshing ? 'animate-spin' : ''}`}
             />
             <span className="text-sm font-medium">Refresh</span>
           </button>
           {activeFiltersCount > 0 && (
             <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded-full">
-              {activeFiltersCount} filter{activeFiltersCount > 1 ? "s" : ""}{" "}
+              {activeFiltersCount} filter{activeFiltersCount > 1 ? 's' : ''}{' '}
               active
             </span>
           )}
@@ -272,10 +272,10 @@ const Events = () => {
         {activeFiltersCount > 0 && (
           <button
             onClick={() => {
-              setStatusFilter("pending");
-              setPriorityFilter("");
-              setStartDate("");
-              setEndDate("");
+              setStatusFilter('pending');
+              setPriorityFilter('');
+              setStartDate('');
+              setEndDate('');
             }}
             className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700/50 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-all border border-gray-300 dark:border-gray-600"
           >
@@ -295,12 +295,12 @@ const Events = () => {
             <Calendar size={64} className="mb-4 opacity-50" />
             <p className="text-lg">
               {activeFiltersCount > 0
-                ? "No events match your filters"
-                : "Get started by creating a new event"}
+                ? 'No events match your filters'
+                : 'Get started by creating a new event'}
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {events.map((event) => (
               <div
                 key={event.id}
@@ -343,14 +343,14 @@ const Events = () => {
                   <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
                     <span
                       className={`px-3 py-1 rounded-full text-xs capitalize ${getStatusColor(
-                        event.status
+                        event.status,
                       )}`}
                     >
                       {event.status}
                     </span>
                     <span
                       className={`px-2 py-1 rounded-md text-xs font-medium ${getPriorityColor(
-                        event.priority
+                        event.priority,
                       )}`}
                     >
                       {event.priority}
@@ -425,7 +425,7 @@ const Events = () => {
                     <span>
                       {renderDateTime(
                         selectedEvent.eventDate,
-                        selectedEvent.eventTime
+                        selectedEvent.eventTime,
                       )}
                     </span>
                   </div>
