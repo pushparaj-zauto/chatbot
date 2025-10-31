@@ -26,7 +26,9 @@ export class BootstrapService implements OnModuleInit {
       const adminName = this.config.get('SUPER_ADMIN_NAME') || 'Super Admin';
 
       if (!orgName || !adminEmail || !adminPassword) {
-        this.logger.warn('⚠️  Organization or Super Admin credentials not set in .env');
+        this.logger.warn(
+          '⚠️  Organization or Super Admin credentials not set in .env',
+        );
         return;
       }
 
@@ -35,6 +37,8 @@ export class BootstrapService implements OnModuleInit {
 
       if (existingOrg) {
         this.logger.log('✅ Organization already initialized');
+        // Still check and initialize configurables if missing
+        await this.initializeConfigurables(existingOrg.id);
         return;
       }
 
@@ -69,8 +73,91 @@ export class BootstrapService implements OnModuleInit {
       });
 
       this.logger.log('🎉 Organization initialization complete!');
+
+      // Initialize configurables after organization is created
+      await this.initializeConfigurables(result.org.id);
     } catch (error) {
       this.logger.error('❌ Failed to initialize organization:', error.message);
+    }
+  }
+
+  private async initializeConfigurables(organizationId: number) {
+    try {
+      // Check if configurables already exist for this organization
+      const existingFields = await this.prisma.configurableField.findFirst({
+        where: { organizationId },
+      });
+
+      if (existingFields) {
+        this.logger.log('✅ Configurables already initialized');
+        return;
+      }
+
+      const defaultFields = [
+        {
+          entityType: 'person',
+          fieldName: 'status',
+          label: 'Person Status',
+          options: [
+            { value: 'Lead', label: 'Lead' },
+            { value: 'Follow Up', label: 'Follow Up' },
+            { value: 'Hot Lead', label: 'Hot Lead' },
+            { value: 'Client', label: 'Client' },
+            { value: 'Inactive', label: 'Inactive' },
+          ],
+        },
+        {
+          entityType: 'company',
+          fieldName: 'status',
+          label: 'Company Status',
+          options: [
+            { value: 'Prospect', label: 'Prospect' },
+            { value: 'Active', label: 'Active' },
+            { value: 'Partner', label: 'Partner' },
+            { value: 'Churned', label: 'Churned' },
+          ],
+        },
+        {
+          entityType: 'event',
+          fieldName: 'status',
+          label: 'Event Status',
+          options: [
+            { value: 'Scheduled', label: 'Scheduled' },
+            { value: 'Postponed', label: 'Postponed' },
+            { value: 'Completed', label: 'Completed' },
+            { value: 'Cancelled', label: 'Cancelled' },
+            { value: 'Not Attended', label: 'Not Attended' },
+          ],
+        },
+      ];
+
+      for (const fieldData of defaultFields) {
+        const field = await this.prisma.configurableField.create({
+          data: {
+            organizationId,
+            entityType: fieldData.entityType,
+            fieldName: fieldData.fieldName,
+            label: fieldData.label,
+          },
+        });
+
+        await this.prisma.configurableOption.createMany({
+          data: fieldData.options.map((opt) => ({
+            fieldId: field.id,
+            value: opt.value,
+            label: opt.label,
+          })),
+        });
+      }
+
+      this.logger.log(
+        `✅ Initialized configurables for organization ${organizationId}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        '❌ Failed to initialize configurables:',
+        error.message,
+      );
     }
   }
 }

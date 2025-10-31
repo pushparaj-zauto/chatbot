@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ConfigurablesService } from './configurables.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -18,8 +19,18 @@ export class ConfigurablesController {
   constructor(private readonly configurablesService: ConfigurablesService) {}
 
   @Get()
-  async getAll(@CurrentUser('organizationId') organizationId: number) {
-    return this.configurablesService.getConfigurableFields(organizationId);
+  async getAll(
+    @CurrentUser('organizationId') organizationId: number,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.configurablesService.getConfigurableFields(
+      organizationId,
+      page ? parseInt(page) : 1,
+      limit ? parseInt(limit) : 10,
+      search,
+    );
   }
 
   @Post('initialize')

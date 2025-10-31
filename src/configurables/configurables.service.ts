@@ -7,8 +7,14 @@ export class ConfigurablesService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async getConfigurableFields(organizationId: number) {
-    return this.prisma.configurableField.findMany({
+  async getConfigurableFields(
+    organizationId: number,
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+  ) {
+    // Fetch all configurable fields with options
+    const fields = await this.prisma.configurableField.findMany({
       where: { organizationId },
       include: {
         options: {
@@ -16,6 +22,49 @@ export class ConfigurablesService {
         },
       },
     });
+
+    // Flatten all options for pagination
+    const allOptions = fields.flatMap((field) =>
+      field.options.map((option) => ({
+        id: option.id,
+        value: option.value,
+        label: option.label,
+        isActive: option.isActive,
+        entityType: field.entityType,
+        fieldName: field.fieldName,
+        entityLabel: field.label,
+        fieldId: field.id,
+      })),
+    );
+
+    // Apply search filter
+    let filteredOptions = allOptions;
+    if (search && search.trim()) {
+      const searchLower = search.toLowerCase().trim();
+      filteredOptions = allOptions.filter(
+        (option) =>
+          option.label.toLowerCase().includes(searchLower) ||
+          option.value.toLowerCase().includes(searchLower) ||
+          option.entityType.toLowerCase().includes(searchLower) ||
+          option.fieldName.toLowerCase().includes(searchLower),
+      );
+    }
+
+    // Apply pagination
+    const total = filteredOptions.length;
+    const totalPages = Math.ceil(total / limit);
+    const skip = (page - 1) * limit;
+    const paginatedOptions = filteredOptions.slice(skip, skip + limit);
+
+    return {
+      options: paginatedOptions,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    };
   }
 
   async getConfigurableOptions(
