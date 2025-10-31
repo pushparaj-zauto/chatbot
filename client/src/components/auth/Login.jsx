@@ -1,18 +1,18 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
-import Logo from "../common/Logo";
-import { useAuth } from "../../context/AuthContext";
-import { getErrorMessage } from "../../utils/errorHandler";
-import toast from "react-hot-toast";
-import axiosInstance from "../../services/api/axiosInstance";
-import API_ENDPOINTS from "../../services/api/endpoints";
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
+import Logo from '../common/Logo';
+import { useAuth } from '../../context/AuthContext';
+import { getErrorMessage } from '../../utils/errorHandler';
+import toast from 'react-hot-toast';
+import axiosInstance from '../../services/api/axiosInstance';
+import API_ENDPOINTS from '../../services/api/endpoints';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: '',
+    password: '',
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -25,27 +25,27 @@ const Login = () => {
 
     // clear field specific errors
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
 
     // clear submit error
     if (errors.submit) {
-      setErrors((prev) => ({ ...prev, submit: "" }));
+      setErrors((prev) => ({ ...prev, submit: '' }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
+      newErrors.email = 'Email is invalid';
     }
 
     if (!formData.password) {
-      newErrors.password = "Password is required";
+      newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
     setErrors(newErrors);
@@ -57,13 +57,13 @@ const Login = () => {
       await toast.promise(
         axiosInstance.post(API_ENDPOINTS.AUTH.RESEND_VERIFICATION, { email }),
         {
-          loading: "Sending verification email...",
-          success: "Verification email sent! Check your inbox.",
-          error: "Failed to send verification email",
-        }
+          loading: 'Sending verification email...',
+          success: 'Verification email sent! Check your inbox.',
+          error: 'Failed to send verification email',
+        },
       );
     } catch (error) {
-      console.error("Resend verification error:", error);
+      console.error('Resend verification error:', error);
     }
   };
 
@@ -75,15 +75,14 @@ const Login = () => {
 
     toast
       .promise(login(formData.email, formData.password), {
-        loading: "Logging in...",
+        loading: 'Logging in...',
         success: (data) => {
-          navigate("/chat");
-          return `Welcome back, ${data.user?.name || "User"}!`;
+          navigate('/chat');
+          return `Welcome back, ${data.user?.name || 'User'}!`;
         },
         error: (error) => {
-
           // Handle EMAIL_NOT_VERIFIED error
-          if (error.response?.data?.error === "EMAIL_NOT_VERIFIED") {
+          if (error.response?.data?.error === 'EMAIL_NOT_VERIFIED') {
             const tokenExpired = error.response.data.tokenExpired;
             const userEmail = error.response.data.email;
             const errorMessage = error.response.data.message;
@@ -112,8 +111,8 @@ const Login = () => {
                   ),
                   {
                     duration: 3000,
-                    icon: "⚠️",
-                  }
+                    icon: '⚠️',
+                  },
                 );
               }, 500);
             }
@@ -164,8 +163,8 @@ const Login = () => {
                   onChange={handleChange}
                   className={`w-full pl-10 pr-4 py-2.5 text-sm border ${
                     errors.email
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 dark:border-gray-600 focus:ring-purple-500"
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 dark:border-gray-600 focus:ring-purple-500'
                   } rounded-lg focus:ring-2 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 outline-none transition-all`}
                   placeholder="Enter your email"
                 />
@@ -183,25 +182,25 @@ const Login = () => {
                 >
                   Password
                 </label>
-                <Link
+                {/* <Link
                   to="/forgot-password"
                   className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors"
                 >
                   Forgot?
-                </Link>
+                </Link> */}
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   id="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   className={`w-full pl-10 pr-12 py-2.5 text-sm border ${
                     errors.password
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 dark:border-gray-600 focus:ring-purple-500"
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 dark:border-gray-600 focus:ring-purple-500'
                   } rounded-lg focus:ring-2 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 outline-none transition-all`}
                   placeholder="Enter your password"
                 />
@@ -241,20 +240,20 @@ const Login = () => {
                   Signing in...
                 </span>
               ) : (
-                "Sign In"
+                'Sign In'
               )}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-xs md:text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{" "}
+          {/* <p className="mt-6 text-center text-xs md:text-sm text-gray-600 dark:text-gray-400">
+            Don't have an account?{' '}
             <Link
               to="/signup"
               className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors"
             >
               Sign Up
             </Link>
-          </p>
+          </p> */}
         </div>
       </div>
     </div>
